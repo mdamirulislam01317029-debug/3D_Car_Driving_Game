@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#101a2b" />
+  <meta name="description" content="A 3D car driving game with curved highways, campaign levels, power-ups and room-based multiplayer." />
+  <title>Highway Rush — 3D Car Driving Game</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <main id="game-shell">
+    <div id="scene-container" aria-label="3D driving game scene"></div>
+
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="top-glow" aria-hidden="true"></div>
+
+    <header class="hud-top">
+      <div class="brand-lockup">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div>
+          <div class="brand-name">HIGHWAY <b>RUSH</b></div>
+          <div class="brand-subtitle">3D ENDLESS DRIVE</div>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div class="metric-card score-card">
+          <span class="metric-label">DISTANCE SCORE</span>
+          <strong id="score-value">000000</strong>
+        </div>
+        <div class="metric-card speed-card">
+          <span class="metric-label">SPEED</span>
+          <div class="speed-line"><strong id="speed-value">173</strong><span>KM/H</span></div>
+        </div>
+        <div class="metric-card best-card">
+          <span class="metric-label">BEST RUN</span>
+          <strong id="high-score-value">000000</strong>
+        </div>
+        <div class="metric-card level-card">
+          <span class="metric-label">LEVEL</span>
+          <strong id="level-value">01 / 05</strong>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button class="icon-button" id="camera-button" title="Change camera (C)" aria-label="Change camera">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h2l1.4-2h6.2l1.4 2h2A2.5 2.5 0 0 1 21 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/><circle cx="12" cy="12" r="3.5"/></svg>
+        </button>
+        <button class="icon-button" id="sound-button" title="Mute sound" aria-label="Mute sound" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        </button>
+        <button class="icon-button" id="pause-button" title="Pause (P)" aria-label="Pause game">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="health-panel" aria-live="polite">
+      <span class="health-caption">ENGINE STATUS</span>
+      <div class="hearts" id="health-hearts">
+        <span class="heart active">♥</span><span class="heart active">♥</span><span class="heart active">♥</span>
+      </div>
+    </div>
+
+    <div class="camera-chip" id="camera-label"><span class="camera-dot"></span> CHASE CAM</div>
+    <div class="turbo-chip" id="turbo-chip"><span class="turbo-dot"></span><span id="turbo-label">SPACE · HOLD FOR TURBO</span></div>
+    <div class="power-status" id="power-status">
+      <span id="shield-status" class="power-pill">🛡 SHIELD —</span>
+      <span id="power-status-text" class="power-pill">⚡ EXTRA POWER —</span>
+    </div>
+    <div class="level-progress" id="level-progress"><div class="level-progress-top"><span id="level-name">LEVEL 1 · VALLEY RUN</span><span id="level-next">NEXT 1,800</span></div><div class="level-track"><i id="level-fill"></i></div></div>
+    <div class="network-chip hidden" id="network-chip">● MULTIPLAYER <b id="network-count">1 PLAYER</b></div>
+
+    <div class="bottom-ui">
+      <div class="control-hint"><kbd>←</kbd><kbd>A</kbd><span>STEER LEFT</span><span class="hint-divider"></span><kbd>D</kbd><kbd>→</kbd><span>STEER RIGHT</span><span class="hint-divider"></span><kbd>SPACE</kbd><span>TURBO</span></div>
+      <div class="steering-widget" aria-hidden="true">
+        <div class="wheel-rim" id="steering-wheel"><div class="wheel-inner"><span class="wheel-spoke spoke-a"></span><span class="wheel-spoke spoke-b"></span><span class="wheel-spoke spoke-c"></span><span class="wheel-hub"></span></div></div>
+        <span class="steering-label">STEERING</span>
+      </div>
+    </div>
+
+    <div class="touch-controls" aria-label="Touch steering controls">
+      <button class="touch-steer" id="touch-left" aria-label="Steer left"><span>‹</span><small>LEFT</small></button>
+      <button class="touch-steer" id="touch-right" aria-label="Steer right"><span>›</span><small>RIGHT</small></button>
+      <button class="touch-boost" id="touch-boost" aria-label="Hold for turbo boost">TURBO</button>
+    </div>
+    <div class="developer-credit">DEVELOPED BY <strong>AMIRUL &amp; JAHIDUL</strong></div>
+
+    <section class="screen-layer poster-screen" id="start-screen">
+      <div class="poster-shell">
+        <div class="poster-topline">
+          <div class="poster-brand"><span class="poster-mark">HR</span><span>AMIRUL &amp; JAHIDUL<br><small>RACING SERIES</small></span></div>
+          <span class="poster-edition">3D SIMULATION · 2026 EDITION</span>
+        </div>
+        <div class="poster-hero">
+          <div class="poster-copy">
+            <div class="eyebrow"><span class="eyebrow-line"></span> THE ROAD IS YOURS <span class="eyebrow-line"></span></div>
+            <div class="title-stack"><span class="title-small">WELCOME TO THE NEXT DRIVE</span><h1>HIGHWAY<br><em>RUSH</em></h1></div>
+            <p class="menu-description">A living 3D highway. Sharp turns. Extra power. Race together.</p>
+            <div class="poster-tags"><span>CURVED ROADS</span><span>POWER-UPS</span><span>ONLINE RACE</span></div>
+          </div>
+          <div class="poster-car-art" aria-hidden="true">
+            <div class="poster-sun"></div><div class="poster-road-glow"></div>
+            <svg class="poster-car-svg" viewBox="0 0 620 320" role="img" aria-label="Sports car poster illustration">
+              <defs>
+                <linearGradient id="carPaint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#bafaff"/><stop offset=".35" stop-color="#39c5d3"/><stop offset="1" stop-color="#07506d"/></linearGradient>
+                <linearGradient id="carGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a8e5ef"/><stop offset="1" stop-color="#142a43"/></linearGradient>
+                <linearGradient id="carLight" x1="0" x2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#6ae4ed"/></linearGradient>
+                <filter id="carShadow"><feGaussianBlur stdDeviation="12"/></filter>
+              </defs>
+              <ellipse cx="330" cy="271" rx="220" ry="25" fill="#020810" opacity=".75" filter="url(#carShadow)"/>
+              <path d="M95 219 130 179 195 158 245 101 Q267 78 309 78 L398 84 Q426 88 449 119 L493 164 540 184 562 222 545 245 88 245Z" fill="url(#carPaint)" stroke="#b6faff" stroke-opacity=".65" stroke-width="3"/>
+              <path d="m227 145 39-47q10-12 34-12l88 5q17 1 29 18l26 39z" fill="url(#carGlass)" stroke="#b9f7ff" stroke-opacity=".55" stroke-width="3"/>
+              <path d="m318 88-5 59M414 108l-16 40" stroke="#9cebf1" stroke-opacity=".7" stroke-width="3"/>
+              <path d="m143 184 63-18 9 27-83 18z" fill="#12364a"/><path d="m449 171 50 13 28 24-68-6z" fill="#102d42"/>
+              <path d="m111 218 57-12 15 20-74 9zM475 211l67 7-4 19-71-1z" fill="url(#carLight)"/>
+              <path d="M201 242h285" stroke="#d8fbff" stroke-opacity=".55" stroke-width="4"/>
+              <path d="m247 245 8-14h57l8 14M414 245l8-14h57l8 14" fill="#070d17"/>
+              <circle cx="282" cy="241" r="35" fill="#050b14" stroke="#526e7c" stroke-width="7"/><circle cx="282" cy="241" r="18" fill="#a7c8d1"/><circle cx="282" cy="241" r="7" fill="#16384b"/>
+              <circle cx="455" cy="241" r="35" fill="#050b14" stroke="#526e7c" stroke-width="7"/><circle cx="455" cy="241" r="18" fill="#a7c8d1"/><circle cx="455" cy="241" r="7" fill="#16384b"/>
+              <path d="m170 192 55-17M462 155l35 17" stroke="#e8ffff" stroke-opacity=".65" stroke-width="3"/>
+              <path d="m105 252 430 0" stroke="#49e2ef" stroke-opacity=".65" stroke-width="2"/>
+            </svg>
+            <span class="poster-speedline speedline-one"></span><span class="poster-speedline speedline-two"></span>
+            <div class="poster-car-caption">BUILT FOR THE OPEN ROAD <b>01—05</b></div>
+          </div>
+        </div>
+        <div class="poster-bottom">
+          <div class="poster-feature-list"><span>01 / SINGLE PLAYER</span><span>02 / MULTIPLAYER</span><span>03 / CAMPAIGN LEVELS</span></div>
+          <div class="login-panel" id="login-panel">
+            <label for="player-name">PLAYER LOGIN <small>CREATE A LOCAL DRIVER PROFILE</small></label>
+            <div class="login-controls"><input id="player-name" maxlength="18" autocomplete="nickname" placeholder="Enter your player name" value=""/><button class="primary-button login-button" id="login-button"><span>LOGIN &amp; CONTINUE</span><b>→</b></button></div>
+            <p class="login-note">Quick local profile · No password or online account required</p>
+          </div>
+          <div class="mode-panel hidden" id="mode-panel">
+            <div class="signed-in-line"><span>DRIVER SIGNED IN</span><strong id="signed-in-name">PLAYER</strong><button id="change-user-button" class="small-link">CHANGE</button></div>
+            <div class="mode-actions">
+              <button class="mode-button selected" id="single-player-button"><b>01</b><span>SINGLE PLAYER<small>Practice and beat your best</small></span></button>
+              <button class="mode-button" id="show-multiplayer-button"><b>02</b><span>MULTIPLAYER<small>Create or join a live room</small></span></button>
+            </div>
+            <div class="single-setup" id="single-setup">
+              <label for="starting-level">STARTING LEVEL</label>
+              <select id="starting-level"><option value="1">Level 1 · Valley Run</option><option value="2">Level 2 · Alpine Curve</option><option value="3">Level 3 · Night Sprint</option><option value="4">Level 4 · Storm Highway</option><option value="5">Level 5 · Legend Run</option></select>
+              <button class="primary-button" id="start-button"><span>START SINGLE PLAYER</span><b>→</b></button>
+            </div>
+            <div class="multiplayer-setup hidden" id="multiplayer-setup">
+              <div class="multi-level-line"><label for="multi-start-level">RACE LEVEL</label><select id="multi-start-level"><option value="1">Level 1 · Valley Run</option><option value="2">Level 2 · Alpine Curve</option><option value="3">Level 3 · Night Sprint</option><option value="4">Level 4 · Storm Highway</option><option value="5">Level 5 · Legend Run</option></select></div>
+              <div class="room-actions"><button id="create-room-button" class="secondary-button">CREATE ROOM</button><div class="join-room-line"><input id="room-code" maxlength="6" placeholder="ROOM CODE"/><button id="join-room-button" class="secondary-button">JOIN</button></div></div>
+              <div class="room-lobby hidden" id="room-lobby"><div><span class="lobby-caption">ROOM CODE</span><strong id="room-code-display">------</strong></div><div><span class="lobby-caption">PLAYERS CONNECTED</span><strong id="room-player-count">1 / 8</strong></div><p id="room-status">Waiting for other drivers...</p><button id="host-start-button" class="primary-button hidden"><span>START MULTIPLAYER RACE</span><b>→</b></button></div>
+              <p class="network-note" id="network-note">Online play uses the included Node.js server. Share your room code with friends.</p>
+            </div>
+          </div>
+          <div class="poster-footer"><span>© 2026 AMIRUL &amp; JAHIDUL · ALL RIGHTS RESERVED</span><span>THREE.JS · WEBGL · SOCKET.IO</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-layer hidden" id="pause-screen">
+      <div class="menu-card compact-card">
+        <div class="eyebrow"><span class="eyebrow-line"></span> TAKE A BREATHER <span class="eyebrow-line"></span></div>
+        <h2>GAME <em>PAUSED</em></h2>
+        <p class="menu-description">Your road is waiting. Resume when you're ready.</p>
+        <button class="primary-button" id="resume-button"><span>RESUME DRIVE</span><b>→</b></button>
+        <button class="text-button" id="pause-restart-button">RESTART RUN</button>
+      </div>
+    </section>
+
+    <section class="screen-layer hidden" id="gameover-screen">
+      <div class="menu-card compact-card">
+        <div class="eyebrow danger-eyebrow"><span class="eyebrow-line"></span> DRIVE COMPLETE <span class="eyebrow-line"></span></div>
+        <h2>GAME <em>OVER</em></h2>
+        <p class="menu-description">Three collisions. The highway wins this round.</p>
+        <div class="result-grid">
+          <div><span>YOUR SCORE</span><strong id="final-score">000000</strong></div>
+          <div><span>BEST RUN</span><strong id="final-best">000000</strong></div>
+        </div>
+        <button class="primary-button" id="restart-button"><span>DRIVE AGAIN</span><b>↻</b></button>
+        <div class="menu-footnote">YOUR BEST RUN IS SAVED AUTOMATICALLY</div>
+      </div>
+    </section>
+
+    <div class="toast" id="collision-toast">COLLISION DETECTED <span>−1 LIFE</span></div>
+    <div class="loading-cover" id="loading-cover"><div class="loader-ring"></div><span>BUILDING YOUR HIGHWAY...</span></div>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+HIGHWAY RUSH — 3D CAR DRIVING GAME
+Copyright © 2026 Amirul & Jahidul. All rights reserved.
+
+This project was prepared as an educational browser game project.
+The game source code, interface, original UI artwork and project branding
+are credited to Amirul & Jahidul. Third-party libraries remain under
+their respective licenses (Three.js, Express and Socket.IO).

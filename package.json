@@ -1,0 +1,17 @@
+{
+  "name": "highway-rush-3d",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Highway Rush 3D car driving game with levels, power-ups and Socket.IO multiplayer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
